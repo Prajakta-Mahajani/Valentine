@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Be My Valentine 💖</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #ffd6e8, #ffeef5);
+  font-family: 'Comic Sans MS', cursive;
+  overflow: hidden;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 25px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 360px;
+}
+
+/* Pig container */
+.pig-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+}
+
+.pig-container img {
+  position: absolute;
+  inset: 0;
+  width: 140px;
+  height: 140px;
+  animation: bounce 1.5s infinite;
+}
+
+.stop-bounce img {
+  animation: none !important;
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+h2 {
+  color: #ff4d88;
+  min-height: 60px;
+}
+
+/* Success text */
+#successText {
+  display: none;
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #ff4d88;
+}
+
+/* Buttons */
+.buttons {
+  position: relative;
+  height: 120px;
+  margin-top: 25px;
+}
+
+button {
+  width: 130px;
+  height: 50px;
+  border-radius: 30px;
+  border: none;
+  font-size: 17px;
+  cursor: pointer;
+  position: absolute;
+  user-select: none;
+}
+
+#yesBtn {
+  background: red;
+  color: white;
+  left: 5%;
+}
+
+#yesBtn:hover {
+  transform: scale(1.15);
+}
+
+#noBtn {
+  background: black;
+  color: white;
+  right: 5%;
+}
+
+#celebration {
+  display: none;
+  margin-top: 15px;
+}
+
+#celebration img {
+  width: 200px;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="card">
+
+  <!-- Pig states -->
+  <div class="pig-container" id="pigBox">
+    <img id="pigNormal"
+      src="https://cdn-icons-png.flaticon.com/512/8453/8453627.png">
+    <img id="pigCry"
+      src="https://cdn-icons-png.flaticon.com/512/4969/4969323.png"
+      style="display:none">
+    <img id="pigLaugh"
+      src="https://cdn-icons-png.flaticon.com/512/4969/4969453.png"
+      style="display:none">
+  </div>
+
+  <h2 id="question"></h2>
+
+  <div id="successText">Yay! You’re my Valentine 💕</div>
+
+  <div class="buttons" id="buttonsBox">
+    <button id="yesBtn">Yes ❤️</button>
+    <button id="noBtn">No 🖤</button>
+  </div>
+
+  <div id="celebration">
+    <img src="https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif">
+  </div>
+</div>
+
+<!-- ✅ REQUIRED AUDIO TAG -->
+<audio id="music" src="valentine.mp3" preload="auto" loop></audio>
+
+<script>
+/* Typing animation */
+const text = "Will you be my Valentine Nee? 💕";
+const question = document.getElementById("question");
+let i = 0;
+(function type() {
+  if (i < text.length) {
+    question.textContent += text.charAt(i++);
+    setTimeout(type, 60);
+  }
+})();
+
+/* Elements */
+const pigNormal = document.getElementById("pigNormal");
+const pigCry = document.getElementById("pigCry");
+const pigLaugh = document.getElementById("pigLaugh");
+const pigBox = document.getElementById("pigBox");
+
+const noBtn = document.getElementById("noBtn");
+const yesBtn = document.getElementById("yesBtn");
+const buttonsBox = document.getElementById("buttonsBox");
+const celebration = document.getElementById("celebration");
+const successText = document.getElementById("successText");
+const music = document.getElementById("music");
+
+/* No button behavior */
+function escapeNo() {
+  pigNormal.style.display = "none";
+  pigLaugh.style.display = "none";
+  pigCry.style.display = "block";
+
+  noBtn.style.position = "fixed";
+  noBtn.style.left = Math.random() * (innerWidth - 150) + "px";
+  noBtn.style.top = Math.random() * (innerHeight - 70) + "px";
+}
+
+noBtn.addEventListener("mouseenter", escapeNo);
+noBtn.addEventListener("touchstart", escapeNo);
+noBtn.addEventListener("click", e => e.preventDefault());
+
+/* YES button — FINAL AUDIO LOGIC */
+yesBtn.addEventListener("click", () => {
+  pigNormal.style.display = "none";
+  pigCry.style.display = "none";
+  pigLaugh.style.display = "block";
+  pigBox.classList.add("stop-bounce");
+
+  buttonsBox.style.display = "none";
+  successText.style.display = "block";
+  celebration.style.display = "block";
+
+  // 🔊 Always plays, even after refresh
+  music.pause();
+  music.currentTime = 0;
+  const p = music.play();
+  if (p !== undefined) p.catch(() => {});
+
+  startConfetti();
+});
+
+/* Confetti */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+let pieces = [];
+function startConfetti() {
+  pieces = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 6 + 4,
+    d: Math.random() * 2 + 1,
+    c: `hsl(${Math.random() * 360},90%,60%)`
+  }));
+  requestAnimationFrame(draw);
+}
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pieces.forEach(p => {
+    ctx.beginPath();
+    ctx.fillStyle = p.c;
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fill();
+    p.y += p.d;
+    if (p.y > canvas.height) p.y = -10;
+  });
+  requestAnimationFrame(draw);
+}
+</script>
+
+</body>
+</html>
